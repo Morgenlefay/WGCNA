@@ -244,14 +244,74 @@ par(cex = 1.0)
 ## 性状与模块热图
 plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
                       plotDendrograms = FALSE, xLabelsAngle = 90)
+```
+##### Step7-Gene list of module
+```r
+if(T){
+  # Select module
+  module = "brown";
+  # Select module probes
+  probes = colnames(datExpr) ## 我们例子里面的probe就是基因
+  inModule = (moduleColors==module);
+  modProbes = probes[inModule]; 
+  head(modProbes)
+  
+  # 如果使用WGCNA包自带的热图就很丑。
+  which.module="brown";
+  dat=datExpr[,moduleColors==which.module ] 
+  plotMat(t(scale(dat)),nrgcols=30,rlabels=T,
+          clabels=T,rcols=which.module,
+          title=which.module )
+  datExpr[1:4,1:4]
+  dat=t(datExpr[,moduleColors==which.module ] )
+  library(pheatmap)
+  pheatmap(dat ,show_colnames =F,show_rownames = F) #对那些提取出来的1000个基因所在的每一行取出，组合起来为一个新的表达矩阵
+  n=t(scale(t(log(dat+1)))) # 'scale'可以对log-ratio数值进行归一化
+  n[n>2]=2 
+  n[n< -2]= -2
+  n[1:4,1:4]
+  pheatmap(n,show_colnames =F,show_rownames = F)
+  group_list=datTraits$subtype
+  ac=data.frame(g=group_list)
+  rownames(ac)=colnames(n) 
+  pheatmap(n,show_colnames =F,show_rownames = F,
+           annotation_col=ac )
+}
+```
+##### Step8-Export module
+```r
+# Recalculate topological overlap
+TOM = TOMsimilarityFromExpr(datExpr, power = 6); 
+# Select module
+module = "brown";
+# Select module probes
+probes = colnames(datExpr) ## 我们例子里面的probe就是基因名
+inModule = (moduleColors==module);
+modProbes = probes[inModule]; 
+## 也是提取指定模块的基因名
+# Select the corresponding Topological Overlap
+modTOM = TOM[inModule, inModule];
+dimnames(modTOM) = list(modProbes, modProbes)
+## 模块对应的基因关系矩阵 
+
+## 导出到VisANT
+vis = exportNetworkToVisANT(modTOM,
+                            file = paste("VisANTInput-", module, ".txt", sep=""),
+                            weighted = TRUE,
+                            threshold = 0)
+
+## 导出到cytoscape
+cyt = exportNetworkToCytoscape(
+  modTOM,
+  edgeFile = paste("CytoscapeInput-edges-", paste(module, collapse="-"), ".txt", sep=""),
+  nodeFile = paste("CytoscapeInput-nodes-", paste(module, collapse="-"), ".txt", sep=""),
+  weighted = TRUE,
+  threshold = 0.02,
+  nodeNames = modProbes, 
+  nodeAttr = moduleColors[inModule]
+);
 
 ```
-
-
-
-
-
-
 
 
 
