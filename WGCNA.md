@@ -104,14 +104,104 @@ if(T){
   dev.off()
   }
 ```
+##### Step6-Analysis of interested module
+```r
+### names (colors) of the modules
+modNames = substring(names(MEs), 3)
+geneModuleMembership = as.data.frame(cor(datExpr, MEs, use = "p"));
+MMPvalue = as.data.frame(corPvalueStudent(as.matrix(geneModuleMembership), nSamples));
+names(geneModuleMembership) = paste("MM", modNames, sep="");
+names(MMPvalue) = paste("p.MM", modNames, sep="");
 
+Luminal = as.data.frame(design[,3]);
+names(Luminal) = "Luminal"
+geneTraitSignificance = as.data.frame(cor(datExpr, Luminal, use = "p"));
+GSPvalue = as.data.frame(corPvalueStudent(as.matrix(geneTraitSignificance), nSamples));
+names(geneTraitSignificance) = paste("GS.", names(Luminal), sep="");
+names(GSPvalue) = paste("p.GS.", names(Luminal), sep="");
 
-
-
-
-
-
-
+module = "brown"
+column = match(module, modNames);
+moduleGenes = moduleColors==module;
+sizeGrWindow(7, 7);
+par(mfrow = c(1,1));
+verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
+                   abs(geneTraitSignificance[moduleGenes, 1]),
+                   xlab = paste("Module Membership in", module, "module"),
+                   ylab = "Gene significance for Luminal",
+                   main = paste("Module membership vs. gene significance\n"),
+                   cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, col = module)
+```
+##### Step6-Visualization of interested module
+###### All
+```r
+# 主要是可视化 TOM矩阵，WGCNA的标准配图
+# 然后可视化不同 模块 的相关性 热图
+# 不同模块的层次聚类图
+# 还有模块诊断，主要是 intramodular connectivity
+if(T){
+  nGenes = ncol(datExpr)
+  nSamples = nrow(datExpr)
+  geneTree = net$dendrograms[[1]]; 
+  dissTOM = 1-TOMsimilarityFromExpr(datExpr, power = 6); 
+  plotTOM = dissTOM^7; 
+  diag(plotTOM) = NA; 
+  #TOMplot(plotTOM, geneTree, moduleColors, main = "Network heatmap plot, all genes")
+  nSelect = 400
+  # For reproducibility, we set the random seed
+  set.seed(10);
+  select = sample(nGenes, size = nSelect);
+  selectTOM = dissTOM[select, select];
+  # There’s no simple way of restricting a clustering tree to a subset of genes, so we must re-cluster.
+  selectTree = hclust(as.dist(selectTOM), method = "average")
+  selectColors = moduleColors[select];
+  # Open a graphical window
+  sizeGrWindow(9,9)
+  # Taking the dissimilarity to a power, say 10, makes the plot more informative by effectively changing
+  # the color palette; setting the diagonal to NA also improves the clarity of the plot
+  plotDiss = selectTOM^7;
+  diag(plotDiss) = NA;
+  
+  png("step7-Network-heatmap.png",width = 800,height = 600)
+  TOMplot(plotDiss, selectTree, selectColors, main = "Network heatmap plot, selected genes")
+  dev.off()
+  
+  # Recalculate module eigengenes
+  MEs = moduleEigengenes(datExpr, moduleColors)$eigengenes
+  ## 只有连续型性状才能只有计算
+  ## 这里把是否属 Luminal 表型这个变量0,1进行数值化
+  Luminal = as.data.frame(design[,3]);
+  names(Luminal) = "Luminal"
+  # Add the weight to existing module eigengenes
+  MET = orderMEs(cbind(MEs, Luminal))
+  # Plot the relationships among the eigengenes and the trait
+  sizeGrWindow(5,7.5);
+  
+  par(cex = 0.9)
+  png("step7-Eigengene-dendrogram.png",width = 800,height = 600)
+  plotEigengeneNetworks(MET, "", marDendro = c(0,4,1,2), marHeatmap = c(3,4,1,2), cex.lab = 0.8, xLabelsAngle
+                        = 90)
+  dev.off()
+  
+  # Plot the dendrogram
+  sizeGrWindow(6,6);
+  par(cex = 1.0)
+  ## 模块的进化树
+  png("step7-Eigengene-dendrogram-hclust.png",width = 800,height = 600)
+  plotEigengeneNetworks(MET, "Eigengene dendrogram", marDendro = c(0,4,2,0),
+                        plotHeatmaps = FALSE)
+  dev.off()
+  # Plot the heatmap matrix (note: this plot will overwrite the dendrogram plot)
+  par(cex = 1.0)
+  ## 性状与模块热
+  
+  png("step7-Eigengene-adjacency-heatmap.png",width = 800,height = 600)
+  plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
+                        plotDendrograms = FALSE, xLabelsAngle = 90)
+  dev.off()
+  
+}
+```
 
 
 
