@@ -54,8 +54,66 @@ net = blockwiseModules(
   saveTOMs = F, 
   verbose = 3
 )
-```
 table(net$colors) 
+```
+
+##### Step4-Plot modules
+```r
+mergedColors = labels2colors(net$colors)
+table(mergedColors)
+plotDendroAndColors(net$dendrograms[[1]], mergedColors[net$blockGenes[[1]]],
+                    "Module colors",
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05)
+```
+
+##### Step5-Module-Trait correlation
+```r
+table(datTraits$subtype)
+if(T){
+  nGenes = ncol(datExpr)
+  nSamples = nrow(datExpr)
+  design=model.matrix(~0+ datTraits$subtype)
+  colnames(design)=levels(datTraits$subtype)
+  moduleColors <- labels2colors(net$colors)
+  # Recalculate MEs with color labels
+  MEs0 = moduleEigengenes(datExpr, moduleColors)$eigengenes
+  MEs = orderMEs(MEs0); ##不同颜色的模块的ME值矩 (样本vs模块)
+  moduleTraitCor = cor(MEs, design , use = "p");
+  moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples)
+  
+  sizeGrWindow(10,6)
+  # Will display correlations and their p-values
+  textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                     signif(moduleTraitPvalue, 1), ")", sep = "");
+  dim(textMatrix) = dim(moduleTraitCor)
+  tiff("step5-Module-trait-relationships.tiff",width = 800,height = 1200,res = 150)
+  par(mar = c(6, 8.5, 3, 3));
+  # Display the correlation values within a heatmap plot
+  labeledHeatmap(Matrix = moduleTraitCor,
+                 xLabels = colnames(design),
+                 yLabels = names(MEs),
+                 ySymbols = names(MEs),
+                 colorLabels = FALSE,
+                 colors = blueWhiteRed(50),
+                 textMatrix = textMatrix,
+                 setStdMargins = FALSE,
+                 cex.text = 0.5,
+                 zlim = c(-1,1),
+                 main = paste("Module-trait relationships"))
+  dev.off()
+  }
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
