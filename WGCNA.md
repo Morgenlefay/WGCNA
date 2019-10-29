@@ -42,7 +42,20 @@ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 best_beta=sft$powerEstimate
 best_beta
 ```
-
+##### Step3-Run WGCNA
+```r
+net = blockwiseModules(
+  datExpr,
+  power = sft$powerEstimate,
+  maxBlockSize = 6000,
+  TOMType = "unsigned", minModuleSize = 30,
+  reassignThreshold = 0, mergeCutHeight = 0.25,
+  numericLabels = TRUE, pamRespectsDendro = FALSE,
+  saveTOMs = F, 
+  verbose = 3
+)
+```
+table(net$colors) 
 
 
 
