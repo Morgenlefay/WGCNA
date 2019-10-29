@@ -132,7 +132,7 @@ verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
                    main = paste("Module membership vs. gene significance\n"),
                    cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, col = module)
 ```
-##### Step6-Visualization of interested module
+##### Step7-Visualization of interested module
 ###### All
 ```r
 # 主要是可视化 TOM矩阵，WGCNA的标准配图
@@ -245,7 +245,7 @@ par(cex = 1.0)
 plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
                       plotDendrograms = FALSE, xLabelsAngle = 90)
 ```
-##### Step7-Gene list of module
+##### Step8-Gene list of module
 ```r
 if(T){
   # Select module
@@ -278,7 +278,7 @@ if(T){
            annotation_col=ac )
 }
 ```
-##### Step8-Export module
+##### Step9-Export module
 ```r
 # Recalculate topological overlap
 TOM = TOMsimilarityFromExpr(datExpr, power = 6); 
